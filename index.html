@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JESSE MACTAGGART — INFRASTRUCTURE & SYSTEMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --surface: #121316;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.3);
+            --text-primary: #ededed;
+            --text-muted: #8b8d98;
+            --accent: #f0f0f0;
+            
+            --font-sans: 'Inter', sans-serif;
+            --font-serif: 'Instrument Serif', serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            cursor: none;
+        }
+
+        ::selection {
+            background: var(--text-primary);
+            color: var(--bg);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Magnetic Cursor */
+        .cursor-dot, .cursor-ring {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+        }
+
+        .cursor-ring {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+                        height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+                        border-color 0.3s ease,
+                        transform 0.1s ease;
+        }
+
+        body.hovering .cursor-ring {
+            width: 64px;
+            height: 64px;
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Noise Overlay */
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            content: "";
+            opacity: 0.035;
+            z-index: 999;
+            pointer-events: none;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            position: fixed;
+            top: -20vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60vw;
+            height: 40vh;
+            background: radial-gradient(ellipse at center, rgba(120, 119, 198, 0.08) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Layout Container */
+        .wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 4vw;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header / Nav */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2.5rem 4vw;
+            z-index: 100;
+            mix-blend-mode: difference;
+        }
+
+        .brand {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero Section */
+        section.hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 8rem;
+            padding-bottom: 4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-inner {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 4rem;
+            align-items: end;
+        }
+
+        .hero-title {
+            font-family: var(--font-serif);
+            font-size: clamp(4.5rem, 9vw, 11rem);
+            line-height: 0.9;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .hero-title i {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .hero-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            padding-bottom: 1rem;
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .cert-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.35rem 0.75rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            border-radius: 2px;
+        }
+
+        /* Section Layouts */
+        section {
+            padding: 8rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+        }
+
+        .section-index {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Works / Projects Accordion Grid */
+        .projects-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            display: grid;
+            grid-template-columns: 1.2fr 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.04) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .project-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-meta-left h3 {
+            font-family: var(--font-serif);
+            font-size: 2.8rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-type {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .project-desc {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            justify-content: flex-end;
+        }
+
+        .project-tech span {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* Experience / Timeline Section */
+        .exp-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4rem;
+        }
+
+        .exp-col h3 {
+            font-family: var(--font-serif);
+            font-size: 3rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+
+        .exp-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        .exp-item {
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .exp-year {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .exp-role {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .exp-company {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* Footer Section */
+        footer {
+            padding: 10rem 0 6rem 0;
+            position: relative;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        .footer-cta {
+            font-family: var(--font-serif);
+            font-size: clamp(4rem, 8vw, 9rem);
+            line-height: 0.95;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: color 0.3s ease, padding-left 0.3s ease;
+            display: inline-block;
+        }
+
+        .footer-cta:hover {
+            color: var(--text-muted);
+            padding-left: 1rem;
+        }
+
+        .footer-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .footer-meta a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .footer-meta a:hover {
+            opacity: 0.6;
+        }
+
+        /* Responsive Design */
+        @media(max-width: 1024px) {
+            .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
+            .project-card { grid-template-columns: 1fr; gap: 1.5rem; padding: 2rem; }
+            .project-tech { justify-content: flex-start; }
+            .exp-container { grid-template-columns: 1fr; gap: 3rem; }
+            .footer-meta { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="noise"></div>
+    <div class="ambient-glow"></div>
+
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-ring" id="cursor-ring"></div>
+
+    <header>
+        <a href="#" class="brand">JESSE_MACTAGGART</a>
+        <ul class="nav-links">
+            <li><a href="#works">Works</a></li>
+            <li><a href="#experience">Experience</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </header>
+
+    <div class="wrapper">
+        <!-- HERO SECTION -->
+        <section class="hero">
+            <div class="hero-inner">
+                <h1 class="hero-title">
+                    Systems architecture, <i>low-overhead</i> code, & cloud infrastructure.
+                </h1>
+                <div class="hero-sidebar">
+                    <p class="hero-desc">
+                        BS Computer Science graduate and multi-certified cloud professional engineering robust, high-performance computing pipelines and localized low-level frameworks.
+                    </p>
+                    <div class="cert-badges">
+                        <span class="badge">AWS ML Engineer</span>
+                        <span class="badge">AWS Cloud Practitioner</span>
+                        <span class="badge">Linux Systems</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WORKS SECTION -->
+        <section id="works">
+            <div class="section-header">
+                <span class="section-title">Featured Works & Systems</span>
+                <span class="section-index">[ 01 / 03 ]</span>
+            </div>
+
+            <div class="projects-grid">
+                <a href="https://github.com/mactaggart" target="_blank" class="project-card">
+                    <div class="project-meta-left">
+                        <h3>FreeDOS Workspace</h3>
+                        <span class="project-type">Low-Level Environment</span>
+                    </div>
+                    <p class="project-desc">
+                        Custom air-gapped DOS partition configuration designed for distraction-free journaling, raw file management, and minimalist continuity.
+                    </p>
+                    <div class="project-tech">
+                        <span>Assembly</span>
+                        <span>DOS</span>
+                        <span>Kernel</span>
+                    </div>
+                </a>
+
+                <a href="https://github.com/mactaggart" target="_blank" class="project-card">
+                    <div class="project-meta-left">
+                        <h3>PyTorch Bigram Engine</h3>
+                        <span class="project-type">Neural Processing</span>
+                    </div>
+                    <p class="project-desc">
+                        Localized tensor processing suite analyzing token probability matrices with hardware-constrained GPU VRAM tracking.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>PyTorch</span>
+                        <span>CUDA</span>
+                    </div>
+                </a>
+
+                <a href="https://github.com/mactaggart" target="_blank" class="project-card">
+                    <div class="project-meta-left">
+                        <h3>Cloud Automation Core</h3>
+                        <span class="project-type">Infrastructure & CI/CD</span>
+                    </div>
+                    <p class="project-desc">
+                        Declarative infrastructure modules engineered to streamline continuous delivery and automated security compliance.
+                    </p>
+                    <div class="project-tech">
+                        <span>Terraform</span>
+                        <span>AWS</span>
+                        <span>Bash</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- EXPERIENCE / BACKGROUND SECTION -->
+        <section id="experience">
+            <div class="section-header">
+                <span class="section-title">Milestones & Technical Credentialing</span>
+                <span class="section-index">[ 02 / 03 ]</span>
+            </div>
+
+            <div class="exp-container">
+                <div class="exp-col">
+                    <h3>Certification & Education</h3>
+                    <div class="exp-list">
+                        <div class="exp-item">
+                            <div class="exp-year">2026</div>
+                            <div class="exp-role">AWS Certified Machine Learning Engineer & Cloud Practitioner</div>
+                            <div class="exp-company">Amazon Web Services</div>
+                        </div>
+                        <div class="exp-item">
+                            <div class="exp-year">Degree</div>
+                            <div class="exp-role">Bachelor of Science in Computer Science</div>
+                            <div class="exp-company">Core Systems, Algorithms & Networks</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exp-col">
+                    <h3>Infrastructure Ops</h3>
+                    <div class="exp-list">
+                        <div class="exp-item">
+                            <div class="exp-year">2024 — 2026</div>
+                            <div class="exp-role">IT Support Specialist & Operations</div>
+                            <div class="exp-company">Enterprise Hardware & Network Environments</div>
+                        </div>
+                        <div class="exp-item">
+                            <div class="exp-year">Core Stack</div>
+                            <div class="exp-role">Low-Overhead Engineering</div>
+                            <div class="exp-company">Python, Git, Linux Administration, Bash</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER / CONTACT -->
+        <footer id="contact">
+            <div class="section-header" style="margin-bottom: 2rem;">
+                <span class="section-title">Direct Connection</span>
+                <span class="section-index">[ 03 / 03 ]</span>
+            </div>
+            
+            <div class="footer-content">
+                <a href="mailto:contact@mactaggart.local" class="footer-cta">
+                    Let's build something resilient.
+                </a>
+
+                <div class="footer-meta">
+                    <div>
+                        <span>EMAIL:</span><br>
+                        <a href="mailto:contact@mactaggart.local">contact@mactaggart.local</a>
+                    </div>
+                    <div>
+                        <span>GITHUB REPOSITORIES:</span><br>
+                        <a href="https://github.com/mactaggart" target="_blank">github.com/mactaggart</a>
+                    </div>
+                    <div>
+                        <span>LOCATION:</span><br>
+                        <span>New Jersey, USA</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Web Audio API Audio Cues (Subtle Organic High-End Clicks)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playHighEndClick() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.03);
+            
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        // Custom Magnetic Cursor Logic
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorRing = document.getElementById('cursor-ring');
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+        let ringX = mouseX, ringY = mouseY;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+        });
+
+        function renderCursorLoop() {
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+            cursorRing.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
+            requestAnimationFrame(renderCursorLoop);
+        }
+        requestAnimationFrame(renderCursorLoop);
+
+        // Interactive states and dynamic card mouse tracking
+        const interactives = document.querySelectorAll('a, .project-card');
+        interactives.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                document.body.classList.add('hovering');
+                playHighEndClick();
+            });
+            el.addEventListener('mouseleave', () => {
+                document.body.classList.remove('hovering');
+            });
+        });
+
+        const cards = document.querySelectorAll('.project-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / card.clientWidth) * 100;
+                const y = ((e.clientY - rect.top) / card.clientHeight) * 100;
+                card.style.setProperty('--mouse-x', `${x}%`);
+                card.style.setProperty('--mouse-y', `${y}%`);
+            });
+        });
+    </script>
+</body>
+</html>
